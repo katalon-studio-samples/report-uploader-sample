@@ -1,0 +1,44 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@4.1.0
+
+jobs:
+
+  test:
+    executor:
+      name: node/default
+      tag: '10.15.3'
+    working_directory: /root/project
+    steps:
+      - checkout
+      - run: |
+          set -ex
+          npm install
+          npm test
+      - persist_to_workspace:
+          root: /root/project
+          paths:
+            - report/*
+
+  upload-report:
+    docker:
+      - image: katalonstudio/report-uploader:0.0.7.11
+    environment:
+      PROJECT_ID: 50236
+      TYPE: junit
+      REPORT_PATH: /katalon/report
+    steps:
+      - attach_workspace:
+          at: /katalon
+      - run: uploader.sh
+
+workflows:
+  version: 2.1
+  upload-report:
+    jobs:
+      - test
+      - upload-report:
+          requires:
+            - test
+

@@ -1,0 +1,31 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+      nodejs: 10
+
+    commands:
+      - node -v
+
+  build:
+    commands:
+      - npm install && npm test
+
+  post_build:
+    commands:
+      - |
+        set -ex
+        export REPORT_PATH=$(pwd)/report
+        docker run -t --rm -v \
+          $REPORT_PATH:/katalon/report \
+          -e PASSWORD=$KATALON_API_KEY  \
+          -e PROJECT_ID=50236 \
+          -e TYPE=junit \
+          -e REPORT_PATH=/katalon/report \
+          katalonstudio/report-uploader:0.0.7.11
+
+cache:
+  paths:
+    - 'node_modules/**/*'

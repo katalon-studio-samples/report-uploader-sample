@@ -1,0 +1,46 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+
+pr:
+  - master
+
+stages:
+  - stage: Test
+    jobs:
+      - job: Test
+        pool:
+          vmImage: 'ubuntu-latest'
+
+        steps:
+
+          - checkout: self
+            fetchDepth: 1
+            clean: true
+
+          - bash: |
+              npm install
+              npm test
+            displayName: Test
+
+          - task: DockerInstaller@0
+            displayName: Docker Installer
+            inputs:
+              dockerVersion: 18.09.9
+              releaseType: stable
+
+          - bash: |
+              set -ex
+              export REPORT_PATH=$(pwd)/report
+              docker run -t --rm -v \
+                $REPORT_PATH:/katalon/report \
+                -e PASSWORD=$KATALON_API_KEY  \
+                -e PROJECT_ID=50236 \
+                -e TYPE=junit \
+                -e REPORT_PATH=/katalon/report \
+                katalonstudio/report-uploader:0.0.7.11
+            displayName: Upload report to Katalon TestOps
+            env:
+              KATALON_API_KEY: $(KATALON_API_KEY)
