@@ -24,7 +24,7 @@ pipeline {
             }
         }
 
-        stage ('Upload report to TestOps 1') {
+        stage ('Upload report to TestOps') {
             agent {
                 docker {
                     image 'katalonstudio/report-uploader:0.0.7.11'
